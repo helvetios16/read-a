@@ -31,4 +31,23 @@ export class AuthController {
 
     return result;
   }
+
+  static async login({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }): Promise<UserPublicModel | ErrorMessage> {
+    if (!email || typeof email !== "string" || !email.includes("@"))
+      return ErrorMessage.InvalidEmail;
+
+    if (!password || typeof password !== "string" || password.length < 6)
+      return ErrorMessage.InvalidPassword;
+
+    const result = await AuthService.login({ email, password });
+
+    if (result instanceof ErrorMessage) return result;
+    return result;
+  }
 }

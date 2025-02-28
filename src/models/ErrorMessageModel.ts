@@ -15,6 +15,7 @@ export class ErrorMessage implements IErrorMessage {
   static readonly InvalidEmail = new ErrorMessage("Invalid email", 400);
   static readonly InvalidAge = new ErrorMessage("Invalid age", 400);
   static readonly InvalidPassword = new ErrorMessage("Invalid password", 400);
+  static readonly WrongPassword = new ErrorMessage("Wrong password", 400);
   static readonly UserAlreadyExists = new ErrorMessage(
     "User already exists",
     400,
@@ -30,7 +31,7 @@ export class ErrorMessage implements IErrorMessage {
 
   toJSON() {
     return {
-      code: this.code,
+      status: this.code,
       message: this.message,
       details: this.details,
     };
