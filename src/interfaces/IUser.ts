@@ -15,3 +15,4 @@ export enum Role {
 
 export type IUserPublic = Omit<IUser, "password" | "role">;
 export type IUserBody = Omit<IUser, "id" | "role">;
+export type IUserLogin = Pick<IUser, "email" | "password">;

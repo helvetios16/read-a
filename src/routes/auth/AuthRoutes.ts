@@ -1,42 +1,44 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { AuthController } from "../../controllers/auth/AuthController";
-import { IUserBody } from "../../interfaces/IUser";
+import { IUserBody, IUserLogin } from "../../interfaces/IUser";
 import { ErrorMessage } from "../../models/ErrorMessageModel";
 import { jwtAccessSetup } from "../../lib/jwt";
+import { bodyLoginModel, bodyRegisterModel } from "../../lib/t";
 
 export const AuthRoutes = new Elysia()
   .use(jwtAccessSetup)
   .group("/auth", (auth) =>
     auth
-      .post("/register", async ({ body, set }) => {
-        if (!body || typeof body !== "object") {
-          set.status = 400;
-          return { message: "Invalid request body" };
-        }
+      .post(
+        "/register",
+        async ({ body, set }) => {
+          const result = await AuthController.createUser(body as IUserBody);
 
-        const result = await AuthController.createUser(body as IUserBody);
+          if (result instanceof ErrorMessage) {
+            set.status = result.code;
+          }
 
-        if (result instanceof ErrorMessage) {
-          set.status = result.code;
-        }
-
-        return result.toJSON();
-      })
-      .post("/login", async ({ jwt, body, set, cookie: { auth } }) => {
-        const result = await AuthController.login(body as IUserBody);
-
-        if (result instanceof ErrorMessage) {
-          set.status = result.code;
           return result.toJSON();
-        }
+        },
+        bodyRegisterModel,
+      )
+      .post(
+        "/login",
+        async ({ jwt, body, set, cookie: { auth } }) => {
+          const result = await AuthController.login(body as IUserLogin);
 
-        const token = await jwt.sign({ id: result.id });
+          if (result instanceof ErrorMessage) {
+            set.status = result.code;
+            return result.toJSON();
+          }
 
-        auth.set({
-          value: token,
-          httpOnly: true,
-        });
+          auth.set({
+            value: await jwt.sign({ id: result.id }),
+            httpOnly: true,
+          });
 
-        return result.toJSON();
-      }),
+          return result.toJSON();
+        },
+        bodyLoginModel,
+      ),
   );
