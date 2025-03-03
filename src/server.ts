@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 import { AuthRoutes } from "./routes/auth/AuthRoutes";
-import { jwt } from "@elysiajs/jwt";
+import { jwtAccessSetup } from "./lib/jwt";
 
 export class Server {
   private app: Elysia;
@@ -8,22 +8,16 @@ export class Server {
   constructor() {
     this.app = new Elysia();
 
-    this.setupJWT();
+    // this.setupJWT();
     this.setupRoutes();
   }
 
   private setupJWT() {
-    this.app.use(
-      jwt({
-        name: "jwt",
-        secret: process.env.SECRET_KEY,
-        exp: "5m",
-      }),
-    );
+    this.app.use(jwtAccessSetup);
   }
 
   private setupRoutes() {
-    AuthRoutes(this.app);
+    this.app.use(AuthRoutes);
   }
 
   public start(port: number | string) {

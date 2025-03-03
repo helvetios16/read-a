@@ -2,39 +2,41 @@ import { Elysia } from "elysia";
 import { AuthController } from "../../controllers/auth/AuthController";
 import { IUserBody } from "../../interfaces/IUser";
 import { ErrorMessage } from "../../models/ErrorMessageModel";
+import { jwtAccessSetup } from "../../lib/jwt";
 
-export const AuthRoutes = (app: Elysia) => {
-  app.group("/auth", (auth) => {
-    auth.post("/register", async ({ body, set }) => {
-      const result = await AuthController.createUser(body as IUserBody);
+export const AuthRoutes = new Elysia()
+  .use(jwtAccessSetup)
+  .group("/auth", (auth) =>
+    auth
+      .post("/register", async ({ body, set }) => {
+        if (!body || typeof body !== "object") {
+          set.status = 400;
+          return { message: "Invalid request body" };
+        }
 
-      if (result instanceof ErrorMessage) {
-        set.status = result.code;
-      }
+        const result = await AuthController.createUser(body as IUserBody);
 
-      return result.toJSON();
-    });
+        if (result instanceof ErrorMessage) {
+          set.status = result.code;
+        }
 
-    auth.post("/login", async ({ jwt, body, set, cookie: { auth } }) => {
-      const result = await AuthController.login(body as IUserBody);
-
-      if (result instanceof ErrorMessage) {
-        set.status = result.code;
         return result.toJSON();
-      }
+      })
+      .post("/login", async ({ jwt, body, set, cookie: { auth } }) => {
+        const result = await AuthController.login(body as IUserBody);
 
-      const token = await jwt.sign({ id: result.id });
+        if (result instanceof ErrorMessage) {
+          set.status = result.code;
+          return result.toJSON();
+        }
 
-      auth.set({
-        value: token,
-        httpOnly: true,
-      });
+        const token = await jwt.sign({ id: result.id });
 
-      console.log(token);
+        auth.set({
+          value: token,
+          httpOnly: true,
+        });
 
-      return result.toJSON();
-    });
-
-    return auth;
-  });
-};
+        return result.toJSON();
+      }),
+  );
