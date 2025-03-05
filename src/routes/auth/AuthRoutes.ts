@@ -1,4 +1,4 @@
-import { Elysia, t } from "elysia";
+import { Elysia } from "elysia";
 import { AuthController } from "../../controllers/auth/AuthController";
 import { IUserBody, IUserLogin } from "../../interfaces/IUser";
 import { ErrorMessage } from "../../models/ErrorMessageModel";
